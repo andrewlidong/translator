@@ -1,5 +1,13 @@
 import axios from 'axios';
-import { GOOGLE_TRANSLATE_API_KEY } from '@env';
+// Try to import from @env, but handle the case when it's not available
+let GOOGLE_TRANSLATE_API_KEY: string | undefined;
+try {
+  const env = require('@env');
+  GOOGLE_TRANSLATE_API_KEY = env.GOOGLE_TRANSLATE_API_KEY;
+} catch (error) {
+  console.warn('Environment variables not loaded, using mock translations only');
+  GOOGLE_TRANSLATE_API_KEY = undefined;
+}
 
 /**
  * Translates text using Google Cloud Translation API
@@ -8,6 +16,12 @@ import { GOOGLE_TRANSLATE_API_KEY } from '@env';
  * @returns Promise with translated text
  */
 export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
+  // If no API key is available, use mock translation
+  if (!GOOGLE_TRANSLATE_API_KEY) {
+    console.log('No API key available, using mock translation');
+    return mockTranslate(text, targetLanguage);
+  }
+
   try {
     // Use Google Cloud Translation API
     const response = await axios.post(
